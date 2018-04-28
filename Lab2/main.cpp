@@ -6,20 +6,25 @@
 
 /* 
  * File:   main.cpp
- * Author: weste27
+ * Author: crjoyce
  *
- * Created on April 5, 2018, 11:21 AM
+ * Created on April 6, 2018, 2:42 PM
  */
 
 #include <cstdlib>
 
+#include "Process.h"
 using namespace std;
+#include <iostream>
 
 /*
  * 
  */
 int main(int argc, char** argv) {
-
+    
+    //string s = "/home/crjoyce/Desktop/trace1.txt";
+    string s(argv[1]); 
+    Process p(s); 
     return 0;
 }
 

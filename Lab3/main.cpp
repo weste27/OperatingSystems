@@ -6,9 +6,9 @@
 
 /* 
  * File:   main.cpp
- * Author: weste27
+ * Author: crjoyce
  *
- * Created on April 13, 2018, 1:42 PM
+ * Created on April 12, 2018, 12:39 PM
  */
 
 #include <cstdlib>
