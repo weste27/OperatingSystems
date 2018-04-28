@@ -24,9 +24,6 @@ Process::Process(std::string &file) {
     run(); 
 }
 
-Process::Process(const Process& orig) {
-}
-
 Process::~Process() {
     input.close(); 
 }
