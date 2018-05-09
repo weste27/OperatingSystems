@@ -25,8 +25,9 @@ using std::vector;
 
 //using mem; 
 
-Process::Process(string file_name_) 
-: file_name(file_name_), line_number(0) {
+Process::Process(string file_name_, mem::MMU &memory)  
+: file_name(file_name_), line_number(0), mem(memory) {
+   
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
   if (!trace.is_open()) {
@@ -45,27 +46,30 @@ void Process::Run(void) {
   string cmd;                   // command from line
   vector<uint32_t> cmdArgs;
   uint32_t size = 0; 
-  while(cmd != "memsize"){
-      ParseCommand(line, cmd, cmdArgs);
-      if(cmd == "memsize"){
-          size = CmdMemSize(line, cmd, cmdArgs); 
-      }
-
-  }
+//  while(cmd != "memsize"){
+//      ParseCommand(line, cmd, cmdArgs);
+//      if(cmd == "map"){
+//          size = CmdMap(line, cmd, cmdArgs); 
+//      }
+//
+//  }
    // arguments from line
-  mem::MMU memory(size); 
+  //mem::MMU memory(size); 
   // Select the command to execute
   while (ParseCommand(line, cmd, cmdArgs)) {
-     if (cmd == "diff") {
-      CmdDiff(line, cmd, cmdArgs, memory);  // get and compare multiple bytes
+      if(cmd == "map"){
+          size = CmdMap(line, cmd, cmdArgs); 
+      }
+      else if (cmd == "diff") {
+      CmdDiff(line, cmd, cmdArgs, *mem);  // get and compare multiple bytes
     } else if (cmd == "store") {
-      CmdStore(line, cmd, cmdArgs, memory);      // put bytes
+      CmdStore(line, cmd, cmdArgs, *mem);      // put bytes
     } else if (cmd == "replicate") {
-      CmdRepl(line, cmd, cmdArgs, memory);     // fill bytes with value
+      CmdRepl(line, cmd, cmdArgs, *mem);     // fill bytes with value
     } else if (cmd == "duplicate") {
-      CmdDupl(line, cmd, cmdArgs, memory);     // copy bytes to dest from source
+      CmdDupl(line, cmd, cmdArgs, *mem);     // copy bytes to dest from source
     } else if (cmd == "print") {
-      CmdPrint(line, cmd, cmdArgs, memory);     // dump byte values to output
+      CmdPrint(line, cmd, cmdArgs, *mem);     // dump byte values to output
     } else if (cmd != "#") {
       cerr << "ERROR: invalid command\n";
       exit(2);
@@ -114,40 +118,47 @@ bool Process::ParseCommand(
   }
 }
 
-uint32_t Process::CmdMemSize(const string &line, 
+void Process::CmdMap(const string &line, 
                          const string &cmd, 
                          const vector<uint32_t> &cmdArgs) {
   // Allocate the specified memory size
   //mem.resize(cmdArgs.at(0), 0);
     //TODO: find a way to round up to the next multiple
-    uint32_t no_of_frames = 0; 
-    uint32_t rem = cmdArgs.at(0)%mem::kPageSize; 
-    if(rem != 0){
-        rem = mem::kPageSize - rem; 
-    }
-    no_of_frames = rem + cmdArgs.at(0); 
-    no_of_frames = no_of_frames/mem::kPageSize; 
-    //memory(no_of_frames); 
-    return no_of_frames; 
+//    uint32_t no_of_frames = 0; 
+//    uint32_t rem = cmdArgs.at(0)%mem::kPageSize; 
+//    if(rem != 0){
+//        rem = mem::kPageSize - rem; 
+//    }
+//    no_of_frames = rem + cmdArgs.at(0); 
+//    no_of_frames = no_of_frames/mem::kPageSize; 
+//    //memory(no_of_frames); 
+//    return no_of_frames; 
+    
+    //call the memory allocator, once it is set up to use
+    //the mmu properly, it should allocate the next n frames
+    //if we pass in the mmu when we make it in main. Pass the 
+    //memory allocator into the process as a reference
 }
 
 void Process::CmdDiff(const string &line,
                               const string &cmd,
                               const vector<uint32_t> &cmdArgs, mem::MMU &memory) {
-  mem::Addr addr = cmdArgs.back();
+  mem::Addr Vaddr = cmdArgs.back();
+  mem::Addr Paddr = 0; 
+  memory.ToPhysical(Vaddr, Paddr, true); 
   //std::cout << addr << " address\n"; 
   // Compare specified byte values
   int count = cmdArgs.size() - 1;
   for (int i = 0; i < count; ++i) {
       uint8_t temp = 0; 
       uint8_t *ptr = &temp; 
-      memory.get_byte(ptr, addr); 
+      memory.get_byte(ptr, Paddr); 
     if(temp != cmdArgs.at(i)) {
-      cout << "diff error at address " << std::hex << addr
+      cout << "diff error at address " << std::hex << Paddr
               << ", expected " << static_cast<uint32_t>(cmdArgs.at(i))
               << ", actual is " << static_cast<uint32_t>(temp) << "\n";
     }
-    ++addr;
+    ++Paddr;
   }
 }
 
@@ -155,12 +166,14 @@ void Process::CmdStore(const string &line,
                        const string &cmd,
                        const vector<uint32_t> &cmdArgs, mem::MMU &memory) {
   // Store multiple bytes starting at specified address
-  uint32_t addr = cmdArgs.back();
+  uint32_t Vaddr = cmdArgs.back();
+  mem::Addr Paddr = 0; 
+  memory.ToPhysical(Vaddr, Paddr, true); 
   int count = cmdArgs.size() - 1;
   for (int i = 0; i < count; ++i) {
       unsigned int temp = cmdArgs.at(i); 
      unsigned int *ptr = &temp;
-     memory.put_byte(addr+i, ptr);
+     memory.put_byte(Paddr+i, ptr);
   }
 }
 
@@ -178,11 +191,18 @@ void Process::CmdDupl(const string &line,
   //memory.get_byte(temp, cmdArgs.at(1)); 
   
   //uint32_t count = cmdArgs.at(2) - cmdArgs.at(1); 
-    mem::Addr start = cmdArgs.at(1); 
-    mem::Addr end = cmdArgs.at(2); 
+    mem::Addr Vstart = cmdArgs.at(1); 
+    mem::Addr Vend = cmdArgs.at(2); 
+    
+    mem::Addr Pstart = 0; 
+    mem::Addr Pend = 0; 
+    
+    memory.ToPhysical(Vstart, Pstart, true); 
+    memory.ToPhysical(Vend, Pend, true); 
+    
   uint8_t vals[cmdArgs.at(0)]; 
-  memory.get_bytes(vals, start, sizeof(vals)); 
-  memory.put_bytes(end, sizeof(vals), vals); 
+  memory.get_bytes(vals, Pstart, sizeof(vals)); 
+  memory.put_bytes(Pend, sizeof(vals), vals); 
 }
 
 void Process::CmdRepl(const string &line,
@@ -192,18 +212,22 @@ void Process::CmdRepl(const string &line,
   uint32_t temp = cmdArgs.at(0);
   uint32_t *value = &temp;  
   mem::Addr count = cmdArgs.at(1);
-  mem::Addr addr = cmdArgs.at(2);
+  mem::Addr Vaddr = cmdArgs.at(2);
+  mem::Addr Paddr = 0; 
+  memory.ToPhysical(Vaddr, Paddr, true); 
   
   //std::cout << addr << " : " << count << " : " << *temp << " \n"; 
   for(int i = 0; i<count; i++){
-        memory.put_byte(addr+i, value);
+        memory.put_byte(Paddr+i, value);
   }
 }
 
 void Process::CmdPrint(const string &line,
                        const string &cmd,
                        const vector<uint32_t> &cmdArgs, mem::MMU &memory) {
-  uint32_t addr = cmdArgs.at(1);
+  uint32_t Vaddr = cmdArgs.at(1);
+  mem::Addr Paddr = 0; 
+  memory.ToPhysical(Vaddr, Paddr, true); 
   uint32_t count = cmdArgs.at(0);
 
   // Output the address
@@ -221,4 +245,22 @@ void Process::CmdPrint(const string &line,
             << static_cast<uint32_t> (*temp);
   }
   cout << "\n";
+}
+
+void Process::CmdPermiss(const string &line,
+                       const string &cmd, 
+        const std::vector<uint32_t> &cmdArgs){
+    mem::Addr vAddr = cmdArgs.at(2); 
+    uint32_t count = cmdArgs.at(0); 
+    mem::Addr status = cmdArgs.at(1); 
+    mem::Addr pAddr = 0; 
+    for(int i = 0; i<count; i += 0x10000){
+        mem.ToPhysical(vAddr+i, pAddr, true);
+        
+        mem::Addr pt_index = (vAddr >> mem::kPageSizeBits) & mem::kPageTableIndexMask;
+        mem::Addr pt_entry_addr = pmcb.page_table_base + pt_index * sizeof(mem::PageTableEntry);
+        mem.phys_mem.get_32(&pt_entry, pt_entry_addr);
+    }
+    
+    
 }

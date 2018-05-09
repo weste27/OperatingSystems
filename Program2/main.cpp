@@ -12,14 +12,22 @@
  */
 
 #include <cstdlib>
-
+#include "Process.h"
+#include "MemoryAllocator.h"
 using namespace std;
 
 /*
  * 
  */
 int main(int argc, char** argv) {
-
+    mem::MMU mem(); 
+    
+    mem::PMCB pmcb(); 
+    mem.set_PMCB(pmcb); 
+    mem.enter_virtual_mode(); 
+    
+    Process p("string", mem); 
+    
     return 0;
 }
 
