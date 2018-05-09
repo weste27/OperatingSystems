@@ -106,6 +106,8 @@ public:
   void Run(void);
   
 private:
+    
+    mem::MMU *mem; 
   // Trace file
   std::string file_name;
   std::fstream trace;
@@ -134,7 +136,7 @@ private:
    * @param cmd command, converted to all lower case
    * @param cmdArgs arguments to command
    */
-  uint32_t CmdMemSize(const std::string &line, 
+  void CmdMap(const std::string &line, 
                   const std::string &cmd, 
                   const std::vector<uint32_t> &cmdArgs);
   void CmdDiff(const std::string &line, 
@@ -152,6 +154,9 @@ private:
   void CmdPrint(const std::string &line, 
                 const std::string &cmd, 
                 const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
+void CmdPermiss(const std::string &line, 
+                  const std::string &cmd, const std::vector<uint32_t> &cmdArgs
+                 );
 };
 
 #endif /* PROCESSTRACE_H */

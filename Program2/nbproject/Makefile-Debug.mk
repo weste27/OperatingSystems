@@ -35,6 +35,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/MemoryAllocator.o \
+	${OBJECTDIR}/PageTableManager.o \
+	${OBJECTDIR}/Process.o \
 	${OBJECTDIR}/main.o
 
 
@@ -52,23 +55,41 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=../OperatingSystems/MemorySubsystemS2018/dist/Debug/GNU-Linux/libmemorysubsystems2018.a
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2
 
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2: ../OperatingSystems/MemorySubsystemS2018/dist/Debug/GNU-Linux/libmemorysubsystems2018.a
+
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2 ${OBJECTFILES} ${LDLIBSOPTIONS}
 
+${OBJECTDIR}/MemoryAllocator.o: MemoryAllocator.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../OperatingSystems/MemorySubsystemS2018 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MemoryAllocator.o MemoryAllocator.cpp
+
+${OBJECTDIR}/PageTableManager.o: PageTableManager.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../OperatingSystems/MemorySubsystemS2018 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PageTableManager.o PageTableManager.cpp
+
+${OBJECTDIR}/Process.o: Process.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../OperatingSystems/MemorySubsystemS2018 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Process.o Process.cpp
+
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -I../OperatingSystems/MemorySubsystemS2018 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:
+	cd ../OperatingSystems/MemorySubsystemS2018 && ${MAKE}  -f Makefile CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -76,6 +97,7 @@ ${OBJECTDIR}/main.o: main.cpp
 
 # Subprojects
 .clean-subprojects:
+	cd ../OperatingSystems/MemorySubsystemS2018 && ${MAKE}  -f Makefile CONF=Debug clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
