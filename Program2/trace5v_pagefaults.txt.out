@@ -1,0 +1,43 @@
+1:# trace5v_pagefaults.txt
+2:# Test page fault exception handling
+3:map  1  04000000
+4:map  3  07530000
+5:map  4  0afe0000
+6:map  1  3fff0000
+7:# Each of the following lines should generate a PageFaultException
+8:diff   0  3ffeffff
+PageFaultException at address 3ffeffff: 
+9:diff   0   0  0b01ffff
+PageFaultException at address b020000: 
+10:store  37  03ffffff
+PageFaultException at address 3ffffff: 
+11:store  ab  cd  0b01ffff
+PageFaultException at address b020000: 
+12:print  20  0400fff0
+400fff0
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+PageFaultException at address 4010000: 
+
+13:# Test that store completes up to the last byte before page fault
+14:store  22  33  0400ffff
+PageFaultException at address 4010000: 
+15:diff   0  22  0400fffe
+16:# Test that replicate completes up to last byte before page fault
+17:# (replicate page faults, diff should succeed)
+18:replicate  99  10001 04000000
+PageFaultException at address 4010000: 
+19:diff  99  99  04000000
+20:diff  99  99  0400fffe
+21:# Test that duplicate completes up to a read page fault
+22:# (duplicate page faults, store and diff should succeed)
+23:store  42  43  0755fffe
+24:duplicate  3  0755fffe 3fff0100
+PageFaultException at address 7560000: 
+25:diff   0  42  43   0  3fff00ff
+26:# Test that duplicate completes up to a write page fault
+27:# (duplicate page faults, store and diff should succeed)
+28:store  08  09  0a  0b  0c  0d  0e  0f 07550000
+29:duplicate  8  07550000 0755fffc
+PageFaultException at address 7560000: 
+30:diff  00  08  09  0a  0b  0755fffb
+31:# end of trace

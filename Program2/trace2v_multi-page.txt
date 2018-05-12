@@ -1,0 +1,36 @@
+# trace2v_multi-page.txt
+# Allocates multiple pages
+map      3  10060000
+# Spot check pages cleared to 0
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10060000
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10070000
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10080000
+replicate  ff  30000  10060000
+store   0  1   2   3   4  5  6  7  8  9  a  b  c  d  e  f  1006fff0
+diff    0  1   2   3   4  5  6  7  8  9  a  b  c  d  e  f  1006fff0
+print    12  1006ffef
+# Allocate more pages
+map      4  10230000
+# Spot check pages cleared to 0
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10230000
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10240000
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10250000
+diff    0     0   0   0   0   0  0  0  0  0  0  0  0  0  0  10260000
+# Test replicate
+replicate  a1  18000  10230000
+replicate  a2  18000  10248000
+replicate  a3  10000  10260000
+diff    ff  0  1   2   3   4  5  6  7  8  9  a  b  c  d  e  f ff  1006ffef
+print       12  1006ffef
+diff    a1    a1  a2  a2  10247ffe
+print       20  10247ff0
+diff    a2    a2  a3  a3  1025fffe
+print       20  1025fff0
+print       10  1026fff0
+duplicate   10  1006fff0  010250000
+diff    a2     0   1   2   3   4  5  6  7  8  9  a  b  c  d  e  f  a2  1024ffff
+# The following line tests that diff will generate errors on mismatches.
+# There should be two mismatched bytes.  These should be the only diff errors
+# in this file.
+diff  a2     0   1   2   e   4  5  6  7  8  9  a  b  0  d  e  f  a2  1024ffff
+# end of trace

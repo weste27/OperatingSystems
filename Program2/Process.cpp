@@ -25,9 +25,15 @@ using std::vector;
 
 //using mem; 
 
-Process::Process(string file_name_, mem::MMU &memory)  
-: file_name(file_name_), line_number(0), mem(memory) {
-   
+Process::Process(string file_name_, mem::MMU &memory, MemoryAllocator &alloc,
+        PageTableManager &ptm)  
+: file_name(file_name_), line_number(0), mem(&memory) {
+    ptm.CreateProcessPT(mem, &alloc, pt, pmcb); 
+    mem->set_PMCB(*pmcb);
+    this->ptm = &ptm; 
+    //use page table manager to create a process page table
+    //set the pmcb of mem to one that uses that page table
+    
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
   if (!trace.is_open()) {
@@ -37,6 +43,12 @@ Process::Process(string file_name_, mem::MMU &memory)
 }
 
 Process::~Process() {
+    delete pt; 
+    delete pmcb; 
+    delete mem; 
+    mem = nullptr; 
+    pt = nullptr; 
+    pmcb = nullptr; 
   trace.close();
 }
 
@@ -45,7 +57,7 @@ void Process::Run(void) {
   string line;                // text line read
   string cmd;                   // command from line
   vector<uint32_t> cmdArgs;
-  uint32_t size = 0; 
+
 //  while(cmd != "memsize"){
 //      ParseCommand(line, cmd, cmdArgs);
 //      if(cmd == "map"){
@@ -58,7 +70,7 @@ void Process::Run(void) {
   // Select the command to execute
   while (ParseCommand(line, cmd, cmdArgs)) {
       if(cmd == "map"){
-          size = CmdMap(line, cmd, cmdArgs); 
+          CmdMap(line, cmd, cmdArgs, *ptm); 
       }
       else if (cmd == "diff") {
       CmdDiff(line, cmd, cmdArgs, *mem);  // get and compare multiple bytes
@@ -120,24 +132,13 @@ bool Process::ParseCommand(
 
 void Process::CmdMap(const string &line, 
                          const string &cmd, 
-                         const vector<uint32_t> &cmdArgs) {
+                         const vector<uint32_t> &cmdArgs, PageTableManager &ptm) {
   // Allocate the specified memory size
-  //mem.resize(cmdArgs.at(0), 0);
-    //TODO: find a way to round up to the next multiple
-//    uint32_t no_of_frames = 0; 
-//    uint32_t rem = cmdArgs.at(0)%mem::kPageSize; 
-//    if(rem != 0){
-//        rem = mem::kPageSize - rem; 
-//    }
-//    no_of_frames = rem + cmdArgs.at(0); 
-//    no_of_frames = no_of_frames/mem::kPageSize; 
-//    //memory(no_of_frames); 
-//    return no_of_frames; 
-    
-    //call the memory allocator, once it is set up to use
-    //the mmu properly, it should allocate the next n frames
-    //if we pass in the mmu when we make it in main. Pass the 
-    //memory allocator into the process as a reference
+    uint32_t count = cmdArgs.at(0); 
+    mem::Addr Vaddr = cmdArgs.at(1); 
+    ptm.Map(mem, count, Vaddr); 
+    mem->set_PMCB(*pmcb); 
+   
 }
 
 void Process::CmdDiff(const string &line,
@@ -231,7 +232,7 @@ void Process::CmdPrint(const string &line,
   uint32_t count = cmdArgs.at(0);
 
   // Output the address
-  cout << std::hex << addr;
+  cout << std::hex << Paddr;
 
   // Output the specified number of bytes starting at the address
   for(int i = 0; i < count; ++i) {
@@ -240,7 +241,7 @@ void Process::CmdPrint(const string &line,
     }
     unsigned int val = 0; 
     unsigned int *temp = &val; 
-    memory.get_byte(temp, addr++); 
+    memory.get_byte(temp, Paddr++); 
     cout << " " << std::setfill('0') << std::setw(2)
             << static_cast<uint32_t> (*temp);
   }
@@ -250,17 +251,11 @@ void Process::CmdPrint(const string &line,
 void Process::CmdPermiss(const string &line,
                        const string &cmd, 
         const std::vector<uint32_t> &cmdArgs){
-    mem::Addr vAddr = cmdArgs.at(2); 
-    uint32_t count = cmdArgs.at(0); 
-    mem::Addr status = cmdArgs.at(1); 
-    mem::Addr pAddr = 0; 
-    for(int i = 0; i<count; i += 0x10000){
-        mem.ToPhysical(vAddr+i, pAddr, true);
-        
-        mem::Addr pt_index = (vAddr >> mem::kPageSizeBits) & mem::kPageTableIndexMask;
-        mem::Addr pt_entry_addr = pmcb.page_table_base + pt_index * sizeof(mem::PageTableEntry);
-        mem.phys_mem.get_32(&pt_entry, pt_entry_addr);
-    }
+    uint64_t count = cmdArgs.at(0); 
+    uint8_t status = cmdArgs.at(1); 
+    mem::Addr Vaddr = cmdArgs.at(2); 
+    ptm->Permission(mem, count, status, Vaddr); 
+    mem->set_PMCB(*pmcb); 
     
     
 }

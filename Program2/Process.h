@@ -77,7 +77,8 @@
 #include <string>
 #include <vector>
 #include <MMU.h>
-
+#include "MemoryAllocator.h"
+#include "PageTableManager.h"
 class Process {
 public:
     //mem::MMU memory; 
@@ -86,7 +87,8 @@ public:
    * 
    * @param file_name_ source of trace commands
    */
-  Process(std::string file_name_);
+  Process(std::string file_name_, mem::MMU &memory, MemoryAllocator &alloc,
+        PageTableManager &ptm);
   
   /**
    * Destructor - close trace file, clean up processing
@@ -106,7 +108,9 @@ public:
   void Run(void);
   
 private:
-    
+    mem::PageTable *pt; 
+    PageTableManager *ptm; 
+    mem::PMCB *pmcb; 
     mem::MMU *mem; 
   // Trace file
   std::string file_name;
@@ -138,7 +142,7 @@ private:
    */
   void CmdMap(const std::string &line, 
                   const std::string &cmd, 
-                  const std::vector<uint32_t> &cmdArgs);
+                  const std::vector<uint32_t> &cmdArgs, PageTableManager &ptm);
   void CmdDiff(const std::string &line, 
                const std::string &cmd, 
                const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
