@@ -12,21 +12,22 @@
  */
 
 #include <cstdlib>
+#include <MMU.h>
 #include "Process.h"
 #include "MemoryAllocator.h"
+#include "PageTableManager.h"
 using namespace std;
 
 /*
  * 
  */
 int main(int argc, char** argv) {
-    mem::MMU mem(); 
-    
-    mem::PMCB pmcb(); 
-    mem.set_PMCB(pmcb); 
-    mem.enter_virtual_mode(); 
-    
-    Process p("string", mem); 
+   mem::MMU mem(64); 
+    MemoryAllocator ma(64, &mem);
+   PageTableManager ptm(&mem, &ma); 
+//    
+//    
+    Process p("/media/sf_Ubuntu_Files/Program2/trace1v.txt", mem, ma, ptm); 
     
     return 0;
 }

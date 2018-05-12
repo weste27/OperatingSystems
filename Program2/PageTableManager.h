@@ -15,13 +15,29 @@
 #define PAGETABLEMANAGER_H
 
 #include <MMU.h>
+#include <cstdint>
+#include <vector>
+#include "MemoryAllocator.h"
+
 class PageTableManager {
 public:
-    PageTableManager();
+    /*in the constructor: use memory allocator
+     to allocate a page on the MMU to store a kernel
+     * page table. Initialize pmcb to use that page table
+     * set the pmcb of the MMU
+    */
+    PageTableManager(mem::MMU *m, MemoryAllocator *a);
     PageTableManager(const PageTableManager& orig);
     virtual ~PageTableManager();
+    mem::Addr CreateProcessPT(mem::MMU *m, MemoryAllocator *a, 
+    mem::PageTable *pPT, mem::PMCB *new_pmcb); 
+    void Map(mem::MMU *m, int count, mem::Addr Vaddr); 
+    void Permission(mem::MMU *m, int count, int state, mem::Addr Vaddr); 
 private:
+    std::vector<uint32_t> closed_list; 
     mem::PMCB *pmcb; 
+    mem::PageTable *kPT;
+    MemoryAllocator *alloc; 
 
 };
 

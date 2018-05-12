@@ -1,0 +1,50 @@
+1:# trace3v_edge-addr.txt
+2:# Simple test of access to first/last pages in address space.
+3:map    1    00000000
+4:map    1    3fff0000
+5:# Make sure allocated pages are cleared to 0 by checking scattered blocks of bytes
+6:diff   0  0   0   0   0   0  0  0  0  0  0  0  0  0  0  00000000
+7:diff   0  0   0   0   0   0  0  0  0  0  0  0  0  0  0  00008000
+8:diff   0  0   0   0   0   0  0  0  0  0  0  0  0  0  0  0000fff0
+9:diff   0  0   0   0   0   0  0  0  0  0  0  0  0  0  0  3fff0000
+10:diff   0  0   0   0   0   0  0  0  0  0  0  0  0  0  0  3fff8000
+11:diff   0  0   0   0   0   0  0  0  0  0  0  0  0  0  0  3ffffff0
+12:replicate  aa  10000  00000000
+13:replicate  55  10000  3fff0000
+14:store  81  82  83  84  85  3ffff0a0
+15:store  92  3ffff0a2
+16:diff   81  82  92  84  85  3ffff0a0
+17:store  bb  3ffff0ff
+18:diff   bb  55  3ffff0ff
+19:replicate  de  3  3ffff00b
+20:diff   55  de  de  de  55  3ffff00a
+21:replicate  cc  10  3ffff020
+22:replicate  dd  10  3ffffff0
+23:duplicate   5  fffff0a0  fffffff1
+24:diff   dd  81  82  92  84  85  dd dd dd dd dd dd dd dd dd dd  3ffffff0
+25:print  100  3ffff000
+3ffff000
+ 55 55 55 55 55 55 55 55 55 55 55 de de de 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ cc cc cc cc cc cc cc cc cc cc cc cc cc cc cc cc
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 81 82 92 84 85 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 bb
+26:duplicate  10  3ffffff0 00000000
+27:print  10  00000000
+0
+ dd 81 82 92 84 85 dd dd dd dd dd dd dd dd dd dd
+28:print  10  3ffffff0
+3ffffff0
+ dd 81 82 92 84 85 dd dd dd dd dd dd dd dd dd dd
+29:# end of trace
