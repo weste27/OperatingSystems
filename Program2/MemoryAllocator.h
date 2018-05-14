@@ -22,7 +22,7 @@ public:
    * 
    * @param page_frame_count
    */
-  MemoryAllocator(uint32_t page_frame_count, mem::MMU *mem);
+  MemoryAllocator(uint32_t page_frame_count, mem::MMU *&mem);
   
   virtual ~MemoryAllocator() {}  // empty destructor
   

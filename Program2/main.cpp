@@ -22,12 +22,12 @@ using namespace std;
  * 
  */
 int main(int argc, char** argv) {
-   mem::MMU mem(64); 
-    MemoryAllocator ma(64, &mem);
-   PageTableManager ptm(&mem, &ma); 
-//    
-//    
-    Process p("/media/sf_Ubuntu_Files/Program2/trace1v.txt", mem, ma, ptm); 
+    mem::MMU *mem = new mem::MMU(64); 
+    MemoryAllocator *ma = new MemoryAllocator(64, mem);
+   PageTableManager ptm(mem, ma); 
+   
+    Process p("/media/sf_Ubuntu_Files/Program2/trace1v.txt", *mem, *ma, ptm);
+    p.Run(); 
     
     return 0;
 }
