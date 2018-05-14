@@ -12,7 +12,7 @@
 #include <stdexcept>
 
 
-MemoryAllocator::MemoryAllocator(uint32_t page_frame_count, mem::MMU *mem) 
+MemoryAllocator::MemoryAllocator(uint32_t page_frame_count, mem::MMU *&mem) 
 {
     memory = mem; 
   if (page_frame_count <= 1) {
@@ -62,8 +62,9 @@ bool MemoryAllocator::AllocatePageFrames(uint32_t count,
       //memset(&memory[frame], 0, kPageSize);
       int src = 0; 
       int *src_pointer = &src; 
-
-      //memory->put_bytes(free_list_head, 0x10000, src_pointer); 
+      
+      //need to do it for everything not just 8 bytes
+      memory->put_bytes(frame, mem::kPageSizeBits, src_pointer); 
     }
     
     // Update free list info

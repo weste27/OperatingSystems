@@ -111,7 +111,8 @@ private:
     mem::PageTable *pt; 
     PageTableManager *ptm; 
     mem::PMCB *pmcb; 
-    mem::MMU *mem; 
+    mem::MMU *memory; 
+    MemoryAllocator *all; 
   // Trace file
   std::string file_name;
   std::fstream trace;
@@ -142,22 +143,22 @@ private:
    */
   void CmdMap(const std::string &line, 
                   const std::string &cmd, 
-                  const std::vector<uint32_t> &cmdArgs, PageTableManager &ptm);
+                  const std::vector<uint32_t> &cmdArgs);
   void CmdDiff(const std::string &line, 
                const std::string &cmd, 
-               const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
+               const std::vector<uint32_t> &cmdArgs);
   void CmdStore(const std::string &line, 
                 const std::string &cmd, 
-                const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
+                const std::vector<uint32_t> &cmdArgs);
   void CmdRepl(const std::string &line, 
                const std::string &cmd, 
-               const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
+               const std::vector<uint32_t> &cmdArgs);
   void CmdDupl(const std::string &line, 
                const std::string &cmd, 
-               const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
+               const std::vector<uint32_t> &cmdArgs);
   void CmdPrint(const std::string &line, 
                 const std::string &cmd, 
-                const std::vector<uint32_t> &cmdArgs, mem::MMU &memory);
+                const std::vector<uint32_t> &cmdArgs);
 void CmdPermiss(const std::string &line, 
                   const std::string &cmd, const std::vector<uint32_t> &cmdArgs
                  );
